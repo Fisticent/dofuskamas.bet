@@ -82,6 +82,7 @@ const App = () => {
     setPotatoHolder(null); setBloodPact(null); setWinner(null); setLastEvent(null);
     setAssassinTargeting(null); setDuelState(null); setScreenEffect(null);
     setBossHp(list.length * 100); setMaxBossHp(list.length * 100);
+    setKamaPrize(0);
     if (list.length > 0) {
       const items = Array(15).fill(null).map(() => generateRandomWheelItem(list, activeEvents));
       setWheelItems(items);
@@ -474,10 +475,6 @@ const App = () => {
   };
 
   const isTension = alivePlayers.length <= 3 && alivePlayers.length > 1 && !winner && !assassinTargeting && !duelState;
-
-  useEffect(() => {
-    setAmbientDrone(gameMode === 'pvm' ? 'boss' : 'tension', soundEnabled && (isTension || gameMode === 'pvm'), isTension ? Math.max(0, 1 - (alivePlayers.length / 5)) : 0);
-  }, [isTension, gameMode, soundEnabled, alivePlayers.length]);
 
   const exportBilanImage = () => {
     if (ardoiseRef.current) {
