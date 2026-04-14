@@ -5,6 +5,49 @@ export const initAudio = () => {
   if (audioCtx.state === 'suspended') audioCtx.resume();
 };
 
+let droneOsc = null;
+let droneGain = null;
+
+export const setAmbientDrone = (mode, enabled, intensity = 0) => {
+  if (!enabled) {
+    if (droneGain) {
+      droneGain.gain.setTargetAtTime(0, audioCtx ? audioCtx.currentTime : 0, 0.5);
+      setTimeout(() => {
+        if (droneOsc) { try { droneOsc.stop(); droneOsc.disconnect(); } catch(e){} droneOsc = null; }
+        if (droneGain) { droneGain.disconnect(); droneGain = null; }
+      }, 600);
+    }
+    return;
+  }
+  
+  initAudio();
+  const t = audioCtx.currentTime;
+
+  if (!droneOsc) {
+    droneOsc = audioCtx.createOscillator();
+    droneGain = audioCtx.createGain();
+    droneGain.gain.value = 0;
+    droneOsc.connect(droneGain);
+    droneGain.connect(audioCtx.destination);
+    droneOsc.start();
+  }
+  
+  if (mode === 'boss') {
+    droneOsc.type = 'square';
+    droneOsc.frequency.setTargetAtTime(50, t, 0.5);
+    // Add LFO later in proper systems, but here we just raise the amplitude heavily based on missing health
+    droneGain.gain.setTargetAtTime(0.02 + (intensity * 0.08), t, 1);
+  } else if (mode === 'tension') {
+    droneOsc.type = 'sine';
+    // Eerie frequency based on how few players are left
+    const freq = 150 + (intensity * 400);
+    droneOsc.frequency.setTargetAtTime(freq, t, 2);
+    droneGain.gain.setTargetAtTime(0.01 + (intensity * 0.04), t, 2);
+  } else {
+    droneGain.gain.setTargetAtTime(0, t, 0.5);
+  }
+};
+
 export const playSound = (type, enabled) => {
   if (!enabled) return;
   initAudio();

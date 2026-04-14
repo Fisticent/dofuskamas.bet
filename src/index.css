@@ -1,1 +1,58 @@
 @import "tailwindcss";
+
+@layer utilities {
+  .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+  .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background-color: #2f4553; border-radius: 20px; }
+  
+  /* Nouveaux VFX */
+  .animate-screen-shake { animation: screenShake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+  .animate-skull-float { animation: skullFloat 2.5s ease-in-out forwards; }
+  .animate-shield-pulse { animation: shieldPulse 1.5s ease-out forwards; }
+  .animate-boss-hit { animation: bossHit 0.3s ease-out; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes screenShake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-15px, -10px) rotate(-1deg); }
+  20% { transform: translate(-10px, 0px) rotate(1deg); }
+  30% { transform: translate(15px, 10px) rotate(0deg); }
+  40% { transform: translate(5px, -5px) rotate(1deg); }
+  50% { transform: translate(-5px, 10px) rotate(-1deg); }
+  60% { transform: translate(-15px, 5px) rotate(0deg); }
+  70% { transform: translate(10px, 5px) rotate(-1deg); }
+  80% { transform: translate(-5px, -5px) rotate(1deg); }
+  90% { transform: translate(5px, 10px) rotate(0deg); }
+  100% { transform: translate(1px, -1px) rotate(0deg); }
+}
+
+@keyframes skullFloat {
+  0% { opacity: 0; transform: scale(0.5) translateY(50px); filter: drop-shadow(0 0 10px purple); }
+  20% { opacity: 0.8; transform: scale(1.2) translateY(-20px); filter: drop-shadow(0 0 50px purple); }
+  80% { opacity: 0.8; transform: scale(1) translateY(-40px); filter: drop-shadow(0 0 50px purple); }
+  100% { opacity: 0; transform: scale(1.5) translateY(-100px); filter: drop-shadow(0 0 10px purple); }
+}
+
+@keyframes shieldPulse {
+  0% { opacity: 0; transform: scale(0.8); }
+  50% { opacity: 1; box-shadow: 0 0 100px 50px rgba(59, 130, 246, 0.4); transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+@keyframes bossHit {
+  0% { filter: brightness(1); transform: scale(1); }
+  50% { filter: brightness(3) sepia(1) hue-rotate(-50deg) saturate(5); transform: scale(0.95); }
+  100% { filter: brightness(1); transform: scale(1); }
+}

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Coins, Users, Play, Settings, Dices, Trophy, AlignLeft, Skull, Crosshair, RefreshCw, Shield, Zap, ArrowUpCircle, Sword, Footprints, Volume2, VolumeX, History, Bomb, Droplets, Swords, Percent, Info, User, Wallet, CheckCircle, PlusCircle, CreditCard, ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import { Coins, Users, Play, Settings, Dices, Trophy, AlignLeft, Skull, Crosshair, RefreshCw, Shield, Zap, ArrowUpCircle, Sword, Footprints, Volume2, VolumeX, History, Bomb, Droplets, Swords, Percent, Info, User, Wallet, CheckCircle, PlusCircle, CreditCard, ArrowDownRight, ArrowUpRight, Download, Activity, SkullCore } from 'lucide-react';
+import * as htmlToImage from 'html-to-image';
 import { EVENT_TYPES, EVENT_DESCRIPTIONS } from './constants';
-import { playSound, initAudio } from './audio';
+import { playSound, initAudio, setAmbientDrone } from './audio';
 
 const App = () => {
   const [participants, setParticipants] = useState([
@@ -37,6 +37,10 @@ const App = () => {
   // Overlays
   const [assassinTargeting, setAssassinTargeting] = useState(null); 
   const [duelState, setDuelState] = useState(null); 
+  const [gameMode, setGameMode] = useState('pvp');
+  const [bossHp, setBossHp] = useState(1000);
+  const [maxBossHp, setMaxBossHp] = useState(1000);
+  const ardoiseRef = useRef(null);
   
   // Configuration des bonus
   const [activeEvents, setActiveEvents] = useState({
@@ -63,10 +67,20 @@ const App = () => {
     }
   }, [alivePlayers, selectedContributor]);
 
+  const resetGlobal = () => {
+    if (window.confirm("Êtes-vous sûr de vouloir TOUT réinitialiser (Cagnotte, Historique, Dettes, Rôles) ?")) {
+      setKamaPrize(0);
+      setContributions([]);
+      setSessionHistory([]);
+      initGame(participants);
+    }
+  };
+
   const initGame = (list) => {
     setAlivePlayers([...list]); setEliminatedPlayers([]); setShieldedPlayers([]);
     setPotatoHolder(null); setBloodPact(null); setWinner(null); setLastEvent(null);
     setAssassinTargeting(null); setDuelState(null); setScreenEffect(null);
+    setBossHp(list.length * 100); setMaxBossHp(list.length * 100);
     if (list.length > 0) {
       const items = Array(15).fill(null).map(() => generateRandomWheelItem(list, activeEvents));
       setWheelItems(items);
@@ -121,6 +135,12 @@ const App = () => {
     if (currentActiveEvents.potato && aliveList.length >= 3 && !potatoHolder) possibleEvents.push({ type: EVENT_TYPES.POTATO, weight: currentWeights.potato });
     if (currentActiveEvents.pact && aliveList.length >= 4 && !bloodPact) possibleEvents.push({ type: EVENT_TYPES.PACT, weight: currentWeights.pact });
 
+    if (gameMode === 'pvm') {
+      possibleEvents.push({ type: EVENT_TYPES.PVM_PLAYER_ATTACK, weight: 20 });
+      possibleEvents.push({ type: EVENT_TYPES.PVM_BOSS_ATTACK, weight: 15 });
+      if (eliminatedPlayers.length > 0) possibleEvents.push({ type: EVENT_TYPES.PVM_HEAL_GROUP, weight: 10 });
+    }
+
     const totalWeight = possibleEvents.reduce((sum, e) => sum + e.weight, 0);
     let r = Math.random() * totalWeight;
     let type = 'player';
@@ -135,6 +155,9 @@ const App = () => {
     if (type === EVENT_TYPES.DUEL) return { type: EVENT_TYPES.DUEL, text: '⚔️ DUEL DE IOP' };
     if (type === EVENT_TYPES.POTATO) return { type: EVENT_TYPES.POTATO, text: '💣 BOMBE AMBULANTE' };
     if (type === EVENT_TYPES.PACT) return { type: EVENT_TYPES.PACT, text: '🩸 PACTE DE SANG' };
+    if (type === EVENT_TYPES.PVM_PLAYER_ATTACK) return { type: EVENT_TYPES.PVM_PLAYER_ATTACK, text: '⚔️ GROUPE ATTAQUE' };
+    if (type === EVENT_TYPES.PVM_BOSS_ATTACK) return { type: EVENT_TYPES.PVM_BOSS_ATTACK, text: '👿 BOSS ATTAQUE' };
+    if (type === EVENT_TYPES.PVM_HEAL_GROUP) return { type: EVENT_TYPES.PVM_HEAL_GROUP, text: '✨ MOT RECONSTITUTION' };
     
     return { type: 'player', text: aliveList[Math.floor(Math.random() * aliveList.length)] };
   };
@@ -215,6 +238,12 @@ const App = () => {
       if (activeEvents.potato && alivePlayers.length >= 3 && !potatoHolder) possibleEvents.push({ type: EVENT_TYPES.POTATO, weight: eventWeights.potato });
       if (activeEvents.pact && alivePlayers.length >= 4 && !bloodPact) possibleEvents.push({ type: EVENT_TYPES.PACT, weight: eventWeights.pact });
 
+      if (gameMode === 'pvm') {
+        possibleEvents.push({ type: EVENT_TYPES.PVM_PLAYER_ATTACK, weight: 20 });
+        possibleEvents.push({ type: EVENT_TYPES.PVM_BOSS_ATTACK, weight: 15 });
+        if (eliminatedPlayers.length > 0) possibleEvents.push({ type: EVENT_TYPES.PVM_HEAL_GROUP, weight: 10 });
+      }
+
       const totalWeight = possibleEvents.reduce((sum, e) => sum + e.weight, 0);
       let roll = Math.random() * totalWeight;
       for (let e of possibleEvents) { if (roll < e.weight) { chosenEvent = e.type; break; } roll -= e.weight; }
@@ -231,6 +260,9 @@ const App = () => {
     else if (chosenEvent === EVENT_TYPES.DUEL) { const shuffled = [...alivePlayers].sort(() => 0.5 - Math.random()); eventData.p1 = shuffled[0]; eventData.p2 = shuffled[1]; targetWheelItem = { type: EVENT_TYPES.DUEL, text: '⚔️ DUEL DE IOP' }; }
     else if (chosenEvent === EVENT_TYPES.POTATO) { eventData.target = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.POTATO, text: '💣 BOMBE AMBULANTE' }; }
     else if (chosenEvent === EVENT_TYPES.PACT) { const shuffled = [...alivePlayers].sort(() => 0.5 - Math.random()); eventData.p1 = shuffled[0]; eventData.p2 = shuffled[1]; targetWheelItem = { type: EVENT_TYPES.PACT, text: '🩸 PACTE DE SANG' }; }
+    else if (chosenEvent === EVENT_TYPES.PVM_PLAYER_ATTACK) { eventData.damage = Math.floor(Math.random() * 80) + 20; targetWheelItem = { type: EVENT_TYPES.PVM_PLAYER_ATTACK, text: '⚔️ GROUPE ATTAQUE' }; }
+    else if (chosenEvent === EVENT_TYPES.PVM_BOSS_ATTACK) { eventData.victim = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.PVM_BOSS_ATTACK, text: '👿 BOSS ATTAQUE' }; }
+    else if (chosenEvent === EVENT_TYPES.PVM_HEAL_GROUP) { eventData.revived = eliminatedPlayers[Math.floor(Math.random() * eliminatedPlayers.length)]; targetWheelItem = { type: EVENT_TYPES.PVM_HEAL_GROUP, text: '✨ MOT RECONSTITUTION' }; }
     else { chosenEvent = EVENT_TYPES.ELIMINATION; eventData.victim = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: 'player', text: eventData.victim }; }
 
     const targetIndex = 50;
@@ -297,6 +329,28 @@ const App = () => {
         else if (chosenEvent === EVENT_TYPES.PACT) {
           setBloodPact([eventData.p1, eventData.p2]);
           setLastEvent({ type: 'pact', message: `🩸 PACTE DE SANG SCÉLLÉ ENTRE ${eventData.p1} ET ${eventData.p2} !` }); triggerScreenEffect('blood'); playSound('divine', soundEnabled);
+        }
+        else if (chosenEvent === EVENT_TYPES.PVM_PLAYER_ATTACK) {
+           let dmg = eventData.damage;
+           setBossHp(prev => {
+             const newHp = Math.max(0, prev - dmg);
+             if (newHp === 0 && pData.newAlive.length > 0) setWinner('LE GROUPE (LE BOSS EST VAINCU !)');
+             return newHp;
+           });
+           setLastEvent({ type: 'carnage', message: `⚔️ LE GROUPE INFLIGE ${dmg} DEGATS AU BOSS !` });
+           triggerScreenEffect('slash'); playSound('slash', soundEnabled);
+        }
+        else if (chosenEvent === EVENT_TYPES.PVM_BOSS_ATTACK) {
+           pData = processDeath(eventData.victim, pData.newAlive, pData.newEliminated, pData.newShields);
+           setLastEvent({ type: 'kill', message: `👿 LE BOSS APPLIQUE SON EFFET SUR ${eventData.victim} ! ${pData.logs.join(' ')}` });
+           triggerScreenEffect('blood'); playSound('explosion', soundEnabled);
+        }
+        else if (chosenEvent === EVENT_TYPES.PVM_HEAL_GROUP) {
+           pData.newEliminated = pData.newEliminated.filter(p => p !== eventData.revived);
+           pData.newAlive.push(eventData.revived);
+           pData.newShields.push(eventData.revived);
+           setLastEvent({ type: 'resurrect', message: `✨ ${eventData.revived} REVIENT À LA VIE AVEC UN BOUCLIER !` });
+           triggerScreenEffect('shield_break'); playSound('divine', soundEnabled);
         }
 
         setAlivePlayers(pData.newAlive); setEliminatedPlayers(pData.newEliminated); setShieldedPlayers(pData.newShields);
@@ -411,11 +465,30 @@ const App = () => {
       case EVENT_TYPES.DUEL: return base + "bg-gray-800 text-white border-gray-400";
       case EVENT_TYPES.POTATO: return base + "bg-red-900/40 text-red-300 border-red-600";
       case EVENT_TYPES.PACT: return base + "bg-rose-900/40 text-rose-300 border-rose-600";
+      case EVENT_TYPES.PVM_BOSS_ATTACK: return base + "bg-purple-900/60 text-purple-200 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.5)]";
+      case EVENT_TYPES.PVM_PLAYER_ATTACK: return base + "bg-sky-900/60 text-sky-200 border-sky-500";
+      case EVENT_TYPES.PVM_HEAL_GROUP: return base + "bg-green-900/60 text-green-200 border-green-500";
       default: return base + "bg-[#2f4553] text-[#b1bad3]";
     }
   };
 
   const isTension = alivePlayers.length <= 3 && alivePlayers.length > 1 && !winner && !assassinTargeting && !duelState;
+
+  useEffect(() => {
+    setAmbientDrone(gameMode === 'pvm' ? 'boss' : 'tension', soundEnabled && (isTension || gameMode === 'pvm'), isTension ? Math.max(0, 1 - (alivePlayers.length / 5)) : 0);
+  }, [isTension, gameMode, soundEnabled, alivePlayers.length]);
+
+  const exportBilanImage = () => {
+    if (ardoiseRef.current) {
+      htmlToImage.toPng(ardoiseRef.current, { backgroundColor: '#1a2c38' })
+        .then((dataUrl) => {
+          const link = document.createElement('a');
+          link.download = `bilan_kamas_${new Date().getTime()}.png`;
+          link.href = dataUrl;
+          link.click();
+        });
+    }
+  };
 
   const calculateSettlements = () => {
     let balances = {};
@@ -524,6 +597,9 @@ const App = () => {
         <div className="flex items-center gap-2 text-2xl font-black tracking-tighter">
           <Dices className="text-[#00e701] w-8 h-8" />
           <span>KAMAS<span className="text-[#b1bad3]">.BET</span></span>
+          <button onClick={resetGlobal} className="ml-4 text-[10px] bg-red-600/20 text-red-500 border border-red-500/50 hover:bg-red-500 hover:text-white px-2 py-1 rounded-md transition-colors flex items-center gap-1 uppercase font-bold" title="Tout réinitialiser">
+             <RefreshCw className="w-3 h-3" /> NOUVELLE PARTIE
+          </button>
         </div>
         <div className="flex items-center gap-4">
           <button onClick={() => setSoundEnabled(!soundEnabled)} className="text-[#b1bad3] hover:text-white transition-colors p-2">
@@ -552,6 +628,11 @@ const App = () => {
 
           {activeTab === 'config' ? (
             <div className="flex-1 space-y-4 animate-fade-in">
+              <div className="flex gap-2">
+                <button onClick={() => setGameMode('pvp')} className={`flex-1 py-1.5 text-xs font-bold rounded flex items-center justify-center gap-1.5 transition-colors ${gameMode === 'pvp' ? 'bg-red-600 text-white shadow-md' : 'bg-[#1a2c38] text-[#557086] border border-[#2f4553]'}`}><Swords className="w-3.5 h-3.5"/> Mode PvP</button>
+                <button onClick={() => setGameMode('pvm')} className={`flex-1 py-1.5 text-xs font-bold rounded flex items-center justify-center gap-1.5 transition-colors ${gameMode === 'pvm' ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'bg-[#1a2c38] text-[#557086] border border-[#2f4553]'}`}><Activity className="w-3.5 h-3.5"/> Boss PvM</button>
+              </div>
+              
               <div>
                 <div className="flex justify-between text-sm font-semibold mb-1 text-[#b1bad3]">Cagnotte Globale</div>
                 <div className="relative bg-[#0f212e] border border-[#2f4553] rounded-md focus-within:border-[#557086] transition-colors">
@@ -697,7 +778,12 @@ const App = () => {
               )}
 
               {/* LISTE DES TRANSACTIONS */}
-              <div className="flex-1 overflow-y-auto scrollbar-thin space-y-2 pb-2">
+              <div className="flex justify-end mb-1 px-1">
+                 {ardoiseView === 'bilan' && (
+                   <button onClick={exportBilanImage} className="text-[10px] font-bold uppercase tracking-wide flex items-center gap-1 bg-blue-600 hover:bg-blue-500 text-white px-2 py-1.5 rounded shadow transition-all"><Download className="w-3 h-3"/> Exporter en image</button>
+                 )}
+              </div>
+              <div ref={ardoiseRef} className="flex-1 overflow-y-auto scrollbar-thin space-y-2 pb-2 p-1 bg-[#213743]">
                 {ardoiseView === 'bilan' ? (
                   <div className="flex flex-col gap-4 animate-fade-in">
                     <div className="bg-[#1a2c38] p-3 rounded-md border border-[#2f4553]">
@@ -907,7 +993,17 @@ const App = () => {
               
               {!winner ? (
                 <>
-                  <div className="relative w-full max-w-4xl h-32 overflow-hidden border-y border-[#2f4553]/60 bg-[#0a151d] shadow-[inset_0_0_40px_rgba(0,0,0,0.6)]">
+                  {gameMode === 'pvm' && (
+                    <div className="absolute top-4 inset-x-0 mx-auto w-3/4 max-w-lg z-20 flex flex-col items-center animate-fade-in-up">
+                      <div className="text-purple-400 font-black text-xl mb-1 uppercase tracking-widest drop-shadow-[0_0_10px_purple]">LE BOSS</div>
+                      <div className="w-full h-8 bg-gray-900 rounded-full border-2 border-gray-700 shadow-[0_0_20px_rgba(168,85,247,0.3)] relative overflow-hidden">
+                        <div className="absolute top-0 left-0 h-full bg-purple-600 transition-all duration-500" style={{ width: `${Math.max(0, (bossHp/maxBossHp)*100)}%` }}></div>
+                        <div className="absolute inset-0 flex items-center justify-center font-bold text-white text-sm mix-blend-difference">{bossHp} / {maxBossHp} PV</div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="relative w-full max-w-4xl h-32 overflow-hidden border-y border-[#2f4553]/60 bg-[#0a151d] shadow-[inset_0_0_40px_rgba(0,0,0,0.6)] mt-4">
                     <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#1a2c38] to-transparent z-40 pointer-events-none"></div>
                     <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#1a2c38] to-transparent z-40 pointer-events-none"></div>
                     
