@@ -397,7 +397,7 @@ const App = () => {
   };
 
   const getWheelItemClass = (item, isTarget) => {
-    let base = "w-40 h-24 flex-shrink-0 flex items-center justify-center p-3 text-center break-all font-bold text-lg rounded-md transition-colors duration-200 border ";
+    let base = "w-40 h-24 flex-shrink-0 flex items-center justify-center p-2 text-center whitespace-normal leading-tight font-bold text-base md:text-lg rounded-md transition-colors duration-200 border ";
     if (isTarget) return base + "scale-105 shadow-[0_0_20px_rgba(255,255,255,0.4)] z-10 bg-white text-black border-white";
     switch(item.type) {
       case 'player': return base + "bg-[#2f4553] text-[#b1bad3] border-[#3d5668]";
@@ -416,6 +416,61 @@ const App = () => {
   };
 
   const isTension = alivePlayers.length <= 3 && alivePlayers.length > 1 && !winner && !assassinTargeting && !duelState;
+
+  const calculateSettlements = () => {
+    let balances = {};
+    const allPlayers = [...new Set([...alivePlayers, ...eliminatedPlayers, ...contributions.map(c => c.player), ...sessionHistory.map(h => h.winner)])];
+    
+    allPlayers.forEach(p => balances[p] = 0);
+
+    contributions.forEach(c => {
+      if (balances[c.player] !== undefined) balances[c.player] -= c.amount;
+    });
+
+    sessionHistory.forEach(h => {
+      let winners = [h.winner];
+      if (h.winner.includes('&')) {
+        winners = h.winner.split('&').map(w => w.split('(')[0].trim());
+      }
+      const splitAmount = Math.floor(h.prize / winners.length);
+      winners.forEach(w => {
+        if (balances[w] !== undefined) balances[w] += splitAmount;
+      });
+    });
+
+    let debtors = [];
+    let creditors = [];
+    Object.keys(balances).forEach(p => {
+      if (balances[p] < 0) debtors.push({ player: p, amount: Math.abs(balances[p]) });
+      if (balances[p] > 0) creditors.push({ player: p, amount: balances[p] });
+    });
+
+    debtors.sort((a, b) => b.amount - a.amount);
+    creditors.sort((a, b) => b.amount - a.amount);
+
+    let settlements = [];
+    let i = 0, j = 0;
+
+    while (i < debtors.length && j < creditors.length) {
+      let debtor = debtors[i];
+      let creditor = creditors[j];
+      let amount = Math.min(debtor.amount, creditor.amount);
+
+      if (amount > 0) {
+        settlements.push({ from: debtor.player, to: creditor.player, amount });
+      }
+
+      debtor.amount -= amount;
+      creditor.amount -= amount;
+
+      if (debtor.amount === 0) i++;
+      if (creditor.amount === 0) j++;
+    }
+
+    return { balances, settlements };
+  };
+
+  const { balances, settlements } = calculateSettlements();
 
   return (
     <div className="min-h-screen bg-[#1a2c38] text-white font-sans flex flex-col items-center overflow-x-hidden relative">
@@ -600,15 +655,24 @@ const App = () => {
               
               {/* TABS DE L'ARDOISE */}
               <div className="flex gap-2">
-                <button onClick={() => setArdoiseView('mises')} className={`flex-1 py-2 text-xs font-bold rounded-md transition-colors flex items-center justify-center gap-1.5 ${ardoiseView === 'mises' ? 'bg-blue-600 text-white shadow-md' : 'bg-[#0f212e] text-[#b1bad3] border border-[#2f4553] hover:bg-[#1a2c38]'}`}>
-                  <ArrowDownRight className="w-3.5 h-3.5" /> Mises (Entrées)
+                <button onClick={() => setArdoiseView('history')} className={`flex-1 py-2 text-xs font-bold rounded-md transition-colors flex items-center justify-center gap-1.5 ${ardoiseView !== 'bilan' ? 'bg-blue-600 text-white shadow-md' : 'bg-[#0f212e] text-[#b1bad3] border border-[#2f4553] hover:bg-[#1a2c38]'}`}>
+                  <History className="w-3.5 h-3.5" /> Mouvements
                 </button>
-                <button onClick={() => setArdoiseView('gains')} className={`flex-1 py-2 text-xs font-bold rounded-md transition-colors flex items-center justify-center gap-1.5 ${ardoiseView === 'gains' ? 'bg-yellow-600 text-white shadow-md' : 'bg-[#0f212e] text-[#b1bad3] border border-[#2f4553] hover:bg-[#1a2c38]'}`}>
-                  <ArrowUpRight className="w-3.5 h-3.5" /> Gains (Sorties)
+                <button onClick={() => setArdoiseView('bilan')} className={`flex-1 py-2 text-xs font-bold rounded-md transition-colors flex items-center justify-center gap-1.5 ${ardoiseView === 'bilan' ? 'bg-[#00e701] text-[#0f212e] shadow-[0_0_15px_rgba(0,231,1,0.3)]' : 'bg-[#0f212e] text-[#b1bad3] border border-[#2f4553] hover:bg-[#1a2c38]'}`}>
+                  <Wallet className="w-3.5 h-3.5" /> Règlements
                 </button>
               </div>
 
+              {/* CONTENU SECONDAIRE SI HISTORY */}
+              {ardoiseView !== 'bilan' && (
+                <div className="flex gap-2">
+                  <button onClick={() => setArdoiseView('history')} className={`flex-1 py-1.5 text-[10px] font-bold rounded flex items-center justify-center gap-1 transition-colors ${ardoiseView === 'history' || ardoiseView === 'mises' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' : 'bg-[#1a2c38] text-[#557086] hover:text-[#b1bad3]'}`}>Entrées</button>
+                  <button onClick={() => setArdoiseView('gains')} className={`flex-1 py-1.5 text-[10px] font-bold rounded flex items-center justify-center gap-1 transition-colors ${ardoiseView === 'gains' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' : 'bg-[#1a2c38] text-[#557086] hover:text-[#b1bad3]'}`}>Sorties</button>
+                </div>
+              )}
+
               {/* BILAN DE L'ONGLET ACTIF */}
+              {ardoiseView !== 'bilan' && (
               <div className="bg-[#0f212e] border border-[#2f4553] p-3 rounded-md flex flex-col gap-2 shrink-0">
                 <div className="text-xs font-bold text-[#b1bad3] uppercase tracking-wider flex items-center gap-2">
                   <CreditCard className="w-4 h-4" /> {ardoiseView === 'mises' ? 'À Récolter des joueurs' : 'À Payer (Gagnants & Voleurs)'}
@@ -616,7 +680,7 @@ const App = () => {
                 <div className="flex justify-between items-center bg-[#1a2c38] p-2 rounded border border-red-500/20">
                   <span className="text-xs text-red-400 font-semibold">En attente :</span>
                   <span className="text-sm text-red-400 font-black">
-                    {ardoiseView === 'mises' 
+                    {ardoiseView !== 'gains' 
                       ? formatKamas(contributions.filter(c => !c.paid).reduce((acc, curr) => acc + curr.amount, 0))
                       : formatKamas(sessionHistory.filter(h => !h.paid).reduce((acc, curr) => acc + curr.prize, 0))} K
                   </span>
@@ -624,16 +688,53 @@ const App = () => {
                 <div className="flex justify-between items-center bg-[#1a2c38] p-2 rounded border border-green-500/20">
                   <span className="text-xs text-green-400 font-semibold">Validé :</span>
                   <span className="text-sm text-green-400 font-black">
-                    {ardoiseView === 'mises' 
+                    {ardoiseView !== 'gains' 
                       ? formatKamas(contributions.filter(c => c.paid).reduce((acc, curr) => acc + curr.amount, 0))
                       : formatKamas(sessionHistory.filter(h => h.paid).reduce((acc, curr) => acc + curr.prize, 0))} K
                   </span>
                 </div>
               </div>
+              )}
 
               {/* LISTE DES TRANSACTIONS */}
-              <div className="flex-1 overflow-y-auto scrollbar-thin space-y-2">
-                {ardoiseView === 'mises' ? (
+              <div className="flex-1 overflow-y-auto scrollbar-thin space-y-2 pb-2">
+                {ardoiseView === 'bilan' ? (
+                  <div className="flex flex-col gap-4 animate-fade-in">
+                    <div className="bg-[#1a2c38] p-3 rounded-md border border-[#2f4553]">
+                      <h4 className="text-xs font-black text-[#b1bad3] mb-3 uppercase tracking-widest text-center">Transferts Recommandés</h4>
+                      {settlements.length === 0 ? (
+                        <div className="text-center text-[#557086] text-xs py-4">Tout le monde est à l'équilibre !</div>
+                      ) : (
+                        <div className="flex flex-col gap-2">
+                          {settlements.map((s, idx) => (
+                            <div key={`settle-${idx}`} className="flex items-center justify-between bg-[#0a151d] p-2 rounded border border-[#2f4553]">
+                              <span className="text-red-400 font-bold text-[11px] truncate w-1/3 text-left">{s.from}</span>
+                              <div className="text-[#b1bad3] text-[10px] flex flex-col items-center mx-1 shrink-0">
+                                <span className="font-black text-[#00e701]">{formatKamas(s.amount)}</span>
+                                <span className="text-[10px] leading-none text-[#557086]">➔</span>
+                              </div>
+                              <span className="text-green-400 font-bold text-[11px] truncate text-right w-1/3">{s.to}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-[#557086] mb-2 uppercase tracking-wide">Balance Nette Individuelle</h4>
+                      <div className="flex flex-col gap-1.5">
+                        {Object.entries(balances).sort((a,b) => b[1] - a[1]).map(([p, bal]) => {
+                          if (bal === 0) return null;
+                          return (
+                            <div key={p} className={`flex justify-between p-2 mt-1 rounded text-xs border ${bal > 0 ? 'bg-green-900/10 border-green-500/20 text-green-400' : 'bg-red-900/10 border-red-500/20 text-red-400'}`}>
+                              <span className="font-semibold truncate">{p}</span>
+                              <span className="font-black">{bal > 0 ? '+' : ''}{formatKamas(bal)}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ) : ardoiseView !== 'gains' ? (
                   contributions.length === 0 ? (
                     <div className="text-center text-[#557086] text-xs py-8">Aucune mise enregistrée.</div>
                   ) : (
@@ -806,13 +907,28 @@ const App = () => {
               
               {!winner ? (
                 <>
-                  <div className="absolute top-20 bottom-8 left-1/2 w-1 bg-red-500 z-20 -translate-x-1/2 shadow-[0_0_15px_#ef4444]"></div>
-                  
-                  <div className="relative w-full max-w-4xl h-32 overflow-hidden">
-                    <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#1a2c38] to-transparent z-10 pointer-events-none"></div>
-                    <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#1a2c38] to-transparent z-10 pointer-events-none"></div>
+                  <div className="relative w-full max-w-4xl h-32 overflow-hidden border-y border-[#2f4553]/60 bg-[#0a151d] shadow-[inset_0_0_40px_rgba(0,0,0,0.6)]">
+                    <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#1a2c38] to-transparent z-40 pointer-events-none"></div>
+                    <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#1a2c38] to-transparent z-40 pointer-events-none"></div>
+                    
+                    {/* Ligne Laser Subtile */}
+                    <div className="absolute top-0 bottom-0 left-1/2 w-[2px] z-30 -translate-x-1/2 bg-gradient-to-b from-yellow-400/70 via-transparent to-emerald-400/70 mix-blend-screen pointer-events-none shadow-[0_0_15px_rgba(250,204,21,0.3)]"></div>
+                    
+                    {/* Curseur Haut (Kamas Doré) */}
+                    <div className="absolute top-[-8px] left-1/2 z-40 -translate-x-1/2 drop-shadow-[0_0_10px_rgba(250,204,21,0.9)] pointer-events-none">
+                      <div className="w-5 h-5 bg-[#1a2c38] border-[3px] border-yellow-400 rotate-45 flex items-center justify-center shadow-inner">
+                         <div className="w-1.5 h-1.5 bg-yellow-300 rounded-full animate-pulse"></div>
+                      </div>
+                    </div>
+                    
+                    {/* Curseur Bas (Dofus Emeraude) */}
+                    <div className="absolute bottom-[-8px] left-1/2 z-40 -translate-x-1/2 drop-shadow-[0_0_10px_rgba(52,211,153,0.9)] pointer-events-none">
+                      <div className="w-5 h-5 bg-[#1a2c38] border-[3px] border-emerald-400 rotate-45 flex items-center justify-center shadow-inner">
+                         <div className="w-1.5 h-1.5 bg-emerald-300 rounded-full animate-pulse"></div>
+                      </div>
+                    </div>
 
-                    <div className="absolute left-1/2 h-full flex gap-4 items-center w-max" style={spinStyles}>
+                    <div className="absolute left-1/2 h-full flex gap-4 items-center w-max z-10" style={spinStyles}>
                       {wheelItems.map((item, index) => (
                         <div key={index} className={getWheelItemClass(item, lastEvent !== null && index === 50)}>
                           {item.text}
