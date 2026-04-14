@@ -582,7 +582,7 @@ const App = () => {
       <header className="w-full h-16 bg-[#1a2c38] border-b border-[#2f4553] flex items-center justify-between px-6 shadow-sm z-30 relative">
         <div className="flex items-center gap-2 text-2xl font-black tracking-tighter">
           <Dices className="text-[#00e701] w-8 h-8" />
-          <span>KAMAS<span className="text-[#b1bad3]">.BET</span></span>
+          <span className="flex items-baseline">KAMAS<span className="text-[#b1bad3]">.BET</span><span className="ml-2 text-xs text-[#557086] font-medium lowercase italic">by Patrice</span></span>
           <div className="flex items-center gap-2 ml-4">
             <button onClick={resetGlobal} className="text-[10px] bg-red-600/20 text-red-500 border border-red-500/50 hover:bg-red-500 hover:text-white px-2 py-1 rounded-md transition-colors flex items-center gap-1 uppercase font-bold" title="Tout réinitialiser">
                <RefreshCw className="w-3 h-3" /> NOUVELLE PARTIE
