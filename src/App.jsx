@@ -37,6 +37,8 @@ const App = () => {
   
   // Overlays
   const [assassinTargeting, setAssassinTargeting] = useState(null); 
+  const [pactChooser, setPactChooser] = useState(null);
+  const [pactSelection, setPactSelection] = useState([]);
   const [duelState, setDuelState] = useState(null); 
   const [gameMode, setGameMode] = useState('pvp');
   const [bossHp, setBossHp] = useState(1000);
@@ -45,12 +47,12 @@ const App = () => {
   
   // Configuration des bonus
   const [activeEvents, setActiveEvents] = useState({
-    jackpot: true, shield: true, resurrect: true, carnage: true, 
+    shield: true, resurrect: true, carnage: true, 
     assassin: true, thief: true, duel: true, potato: true, pact: true
   });
   
   const [eventWeights, setEventWeights] = useState({
-    jackpot: 8, shield: 8, resurrect: 5, carnage: 5, 
+    shield: 8, resurrect: 5, carnage: 5, 
     assassin: 5, thief: 4, duel: 5, potato: 5, pact: 5
   });
   
@@ -80,7 +82,7 @@ const App = () => {
   const initGame = (list) => {
     setAlivePlayers([...list]); setEliminatedPlayers([]); setShieldedPlayers([]);
     setPotatoHolder(null); setBloodPact(null); setWinner(null); setLastEvent(null);
-    setAssassinTargeting(null); setDuelState(null); setScreenEffect(null);
+    setAssassinTargeting(null); setPactChooser(null); setPactSelection([]); setDuelState(null); setScreenEffect(null);
     setBossHp(list.length * 100); setMaxBossHp(list.length * 100);
     setKamaPrize(0);
     if (list.length > 0) {
@@ -109,14 +111,6 @@ const App = () => {
       date: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
     }, ...prev]);
     playSound('coin', soundEnabled);
-  };
-
-  const toggleContributionPaid = (id) => {
-    setContributions(prev => prev.map(c => c.id === id ? { ...c, paid: !c.paid } : c));
-  };
-
-  const toggleGainPaid = (id) => {
-    setSessionHistory(prev => prev.map(h => h.id === id ? { ...h, paid: !h.paid } : h));
   };
 
   // --- EVENEMENTS VISUELS ---
@@ -148,7 +142,6 @@ const App = () => {
     let type = 'player';
     for (let e of possibleEvents) { if (r < e.weight) { type = e.type; break; } r -= e.weight; }
 
-    if (type === EVENT_TYPES.JACKPOT) return { type: EVENT_TYPES.JACKPOT, text: '💰 JACKPOT D\'ENUTROF' };
     if (type === EVENT_TYPES.SHIELD) return { type: EVENT_TYPES.SHIELD, text: '🛡️ BOUCLIER FECA' };
     if (type === EVENT_TYPES.RESURRECT) return { type: EVENT_TYPES.RESURRECT, text: '🧟 LAISSE SPIRITUELLE' };
     if (type === EVENT_TYPES.CARNAGE) return { type: EVENT_TYPES.CARNAGE, text: '☠️ COLÈRE DE IOP' };
@@ -230,7 +223,6 @@ const App = () => {
 
     if (!isPotatoExploding) {
       const possibleEvents = [{ type: EVENT_TYPES.ELIMINATION, weight: 60 }];
-      if (activeEvents.jackpot) possibleEvents.push({ type: EVENT_TYPES.JACKPOT, weight: eventWeights.jackpot });
       if (activeEvents.shield) possibleEvents.push({ type: EVENT_TYPES.SHIELD, weight: eventWeights.shield });
       if (activeEvents.resurrect && eliminatedPlayers.length > 0) possibleEvents.push({ type: EVENT_TYPES.RESURRECT, weight: eventWeights.resurrect });
       if (activeEvents.carnage && alivePlayers.length >= 3) possibleEvents.push({ type: EVENT_TYPES.CARNAGE, weight: eventWeights.carnage });
@@ -253,7 +245,6 @@ const App = () => {
 
     let targetWheelItem = {};
     if (chosenEvent === EVENT_TYPES.POTATO_EXPLODE) targetWheelItem = { type: EVENT_TYPES.POTATO_EXPLODE, text: `💣 ${eventData.victim}` };
-    else if (chosenEvent === EVENT_TYPES.JACKPOT) targetWheelItem = { type: EVENT_TYPES.JACKPOT, text: '💰 JACKPOT D\'ENUTROF' };
     else if (chosenEvent === EVENT_TYPES.SHIELD) { eventData.lucky = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.SHIELD, text: '🛡️ BOUCLIER FECA' }; } 
     else if (chosenEvent === EVENT_TYPES.RESURRECT) { eventData.revived = eliminatedPlayers[Math.floor(Math.random() * eliminatedPlayers.length)]; targetWheelItem = { type: EVENT_TYPES.RESURRECT, text: '🧟 LAISSE SPIRITUELLE' }; } 
     else if (chosenEvent === EVENT_TYPES.CARNAGE) { const shuffled = [...alivePlayers].sort(() => 0.5 - Math.random()); eventData.victims = [shuffled[0], shuffled[1]]; targetWheelItem = { type: EVENT_TYPES.CARNAGE, text: '☠️ COLÈRE DE IOP' }; } 
@@ -261,7 +252,7 @@ const App = () => {
     else if (chosenEvent === EVENT_TYPES.THIEF) { eventData.thief = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.THIEF, text: '🏃‍♂️ ARNAQUE' }; } 
     else if (chosenEvent === EVENT_TYPES.DUEL) { const shuffled = [...alivePlayers].sort(() => 0.5 - Math.random()); eventData.p1 = shuffled[0]; eventData.p2 = shuffled[1]; targetWheelItem = { type: EVENT_TYPES.DUEL, text: '⚔️ DUEL DE IOP' }; }
     else if (chosenEvent === EVENT_TYPES.POTATO) { eventData.target = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.POTATO, text: '💣 BOMBE AMBULANTE' }; }
-    else if (chosenEvent === EVENT_TYPES.PACT) { const shuffled = [...alivePlayers].sort(() => 0.5 - Math.random()); eventData.p1 = shuffled[0]; eventData.p2 = shuffled[1]; targetWheelItem = { type: EVENT_TYPES.PACT, text: '🩸 PACTE DE SANG' }; }
+    else if (chosenEvent === EVENT_TYPES.PACT) { eventData.pactMaker = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.PACT, text: '🩸 PACTE DE SANG' }; }
     else if (chosenEvent === EVENT_TYPES.PVM_PLAYER_ATTACK) { eventData.damage = Math.floor(Math.random() * 80) + 20; targetWheelItem = { type: EVENT_TYPES.PVM_PLAYER_ATTACK, text: '⚔️ GROUPE ATTAQUE' }; }
     else if (chosenEvent === EVENT_TYPES.PVM_BOSS_ATTACK) { eventData.victim = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.PVM_BOSS_ATTACK, text: '👿 BOSS ATTAQUE' }; }
     else if (chosenEvent === EVENT_TYPES.PVM_HEAL_GROUP) { eventData.revived = eliminatedPlayers[Math.floor(Math.random() * eliminatedPlayers.length)]; targetWheelItem = { type: EVENT_TYPES.PVM_HEAL_GROUP, text: '✨ MOT RECONSTITUTION' }; }
@@ -295,10 +286,6 @@ const App = () => {
           pData = processDeath(eventData.victim, pData.newAlive, pData.newEliminated, pData.newShields);
           if (pData.actuallyDied.length > 0) { setLastEvent({ type: 'kill', message: `💀 ${eventData.victim} est éliminé ! ${pData.logs.join(' ')}` }); triggerScreenEffect('blood'); playSound('explosion', soundEnabled); }
           else { setLastEvent({ type: 'shield_break', message: pData.logs[0] }); }
-        } 
-        else if (chosenEvent === EVENT_TYPES.JACKPOT) {
-          const boost = Math.floor(currentKamas * 0.20); currentKamas += boost; setKamaPrize(currentKamas);
-          setLastEvent({ type: 'bonus', message: `💰 JACKPOT D'ENUTROF ! +${formatKamas(boost)} Kamas !` }); playSound('coin', soundEnabled);
         }
         else if (chosenEvent === EVENT_TYPES.SHIELD) {
           if (!pData.newShields.includes(eventData.lucky)) pData.newShields.push(eventData.lucky);
@@ -329,8 +316,9 @@ const App = () => {
           setLastEvent({ type: 'potato', message: `💣 ${eventData.target} REÇOIT LA BOMBE AMBULANTE !` }); playSound('divine', soundEnabled);
         }
         else if (chosenEvent === EVENT_TYPES.PACT) {
-          setBloodPact([eventData.p1, eventData.p2]);
-          setLastEvent({ type: 'pact', message: `🩸 PACTE DE SANG SCÉLLÉ ENTRE ${eventData.p1} ET ${eventData.p2} !` }); triggerScreenEffect('blood'); playSound('divine', soundEnabled);
+          setPactChooser(eventData.pactMaker);
+          setPactSelection([]);
+          setLastEvent({ type: 'pact', message: `🩸 ${eventData.pactMaker} PRÉPARE UN PACTE DE SANG !` }); playSound('divine', soundEnabled);
         }
         else if (chosenEvent === EVENT_TYPES.PVM_PLAYER_ATTACK) {
            let dmg = eventData.damage;
@@ -688,7 +676,6 @@ const App = () => {
                 <span className="text-[#b1bad3] text-sm font-semibold flex items-center gap-1 mb-1"><Zap className="w-4 h-4"/> Événements Actifs & Poids</span>
                 <div className="grid grid-cols-1 gap-y-3">
                   {[
-                    { key: 'jackpot', icon: <Coins className="w-3 h-3"/>, label: 'Jackpot d\'Enutrof', color: 'text-yellow-500' },
                     { key: 'shield', icon: <Shield className="w-3 h-3"/>, label: 'Bouclier Feca', color: 'text-blue-400' },
                     { key: 'resurrect', icon: <ArrowUpCircle className="w-3 h-3"/>, label: 'Laisse Spirituelle', color: 'text-emerald-400' },
                     { key: 'carnage', icon: <Skull className="w-3 h-3"/>, label: 'Colère de Iop', color: 'text-red-500' },
@@ -746,35 +733,10 @@ const App = () => {
 
               {/* CONTENU SECONDAIRE SI HISTORY */}
               {ardoiseView !== 'bilan' && (
-                <div className="flex gap-2">
-                  <button onClick={() => setArdoiseView('history')} className={`flex-1 py-1.5 text-[10px] font-bold rounded flex items-center justify-center gap-1 transition-colors ${ardoiseView === 'history' || ardoiseView === 'mises' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' : 'bg-[#1a2c38] text-[#557086] hover:text-[#b1bad3]'}`}>Entrées</button>
-                  <button onClick={() => setArdoiseView('gains')} className={`flex-1 py-1.5 text-[10px] font-bold rounded flex items-center justify-center gap-1 transition-colors ${ardoiseView === 'gains' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' : 'bg-[#1a2c38] text-[#557086] hover:text-[#b1bad3]'}`}>Sorties</button>
+                <div className="flex gap-2 mb-2">
+                  <button onClick={() => setArdoiseView('mises')} className={`flex-1 py-1.5 text-[10px] font-bold rounded flex items-center justify-center gap-1 transition-colors ${ardoiseView === 'history' || ardoiseView === 'mises' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' : 'bg-[#1a2c38] text-[#557086] hover:text-[#b1bad3]'}`}>Historique: Mises</button>
+                  <button onClick={() => setArdoiseView('gains')} className={`flex-1 py-1.5 text-[10px] font-bold rounded flex items-center justify-center gap-1 transition-colors ${ardoiseView === 'gains' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' : 'bg-[#1a2c38] text-[#557086] hover:text-[#b1bad3]'}`}>Historique: Gains</button>
                 </div>
-              )}
-
-              {/* BILAN DE L'ONGLET ACTIF */}
-              {ardoiseView !== 'bilan' && (
-              <div className="bg-[#0f212e] border border-[#2f4553] p-3 rounded-md flex flex-col gap-2 shrink-0">
-                <div className="text-xs font-bold text-[#b1bad3] uppercase tracking-wider flex items-center gap-2">
-                  <CreditCard className="w-4 h-4" /> {ardoiseView === 'mises' ? 'À Récolter des joueurs' : 'À Payer (Gagnants & Voleurs)'}
-                </div>
-                <div className="flex justify-between items-center bg-[#1a2c38] p-2 rounded border border-red-500/20">
-                  <span className="text-xs text-red-400 font-semibold">En attente :</span>
-                  <span className="text-sm text-red-400 font-black">
-                    {ardoiseView !== 'gains' 
-                      ? formatKamas(contributions.filter(c => !c.paid).reduce((acc, curr) => acc + curr.amount, 0))
-                      : formatKamas(sessionHistory.filter(h => !h.paid).reduce((acc, curr) => acc + curr.prize, 0))} K
-                  </span>
-                </div>
-                <div className="flex justify-between items-center bg-[#1a2c38] p-2 rounded border border-green-500/20">
-                  <span className="text-xs text-green-400 font-semibold">Validé :</span>
-                  <span className="text-sm text-green-400 font-black">
-                    {ardoiseView !== 'gains' 
-                      ? formatKamas(contributions.filter(c => c.paid).reduce((acc, curr) => acc + curr.amount, 0))
-                      : formatKamas(sessionHistory.filter(h => h.paid).reduce((acc, curr) => acc + curr.prize, 0))} K
-                  </span>
-                </div>
-              </div>
               )}
 
               {/* LISTE DES TRANSACTIONS */}
@@ -825,16 +787,13 @@ const App = () => {
                     <div className="text-center text-[#557086] text-xs py-8">Aucune mise enregistrée.</div>
                   ) : (
                     contributions.map(contrib => (
-                      <div key={contrib.id} className={`border p-2.5 rounded-md flex flex-col gap-1 transition-colors ${contrib.paid ? 'bg-[#0a151d] border-green-500/30 opacity-70' : 'bg-[#0f212e] border-[#2f4553]'}`}>
+                      <div key={contrib.id} className="border p-2.5 rounded-md flex flex-col gap-1 transition-colors bg-[#0f212e] border-[#2f4553]">
                         <div className="flex justify-between items-start">
                           <div className="flex flex-col">
                             <span className="text-[10px] text-[#b1bad3] mb-0.5">{contrib.date}</span>
-                            <div className={`font-bold truncate text-sm ${contrib.paid ? 'text-gray-400 line-through' : 'text-blue-300'}`}>{contrib.player}</div>
-                            <div className={`text-xs font-black mt-1 ${contrib.paid ? 'text-green-600/70' : 'text-blue-400'}`}>+ {formatKamas(contrib.amount)} K</div>
+                            <div className="font-bold truncate text-sm text-blue-400">{contrib.player}</div>
+                            <div className="text-xs font-black mt-1 text-blue-500">+ {formatKamas(contrib.amount)} K</div>
                           </div>
-                          <button onClick={() => toggleContributionPaid(contrib.id)} className={`p-1.5 rounded-full transition-all ${contrib.paid ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-[#2f4553] text-[#b1bad3] hover:text-white hover:bg-[#3d5668]'}`} title="Cocher si le joueur a donné les Kamas">
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
                         </div>
                       </div>
                     ))
@@ -844,21 +803,20 @@ const App = () => {
                     <div className="text-center text-[#557086] text-xs py-8">Aucun gain ni vol enregistré.</div>
                   ) : (
                     sessionHistory.map(hist => (
-                      <div key={hist.id} className={`border p-2.5 rounded-md flex flex-col gap-1 transition-colors ${hist.paid ? 'bg-[#0a151d] border-green-500/30 opacity-70' : 'bg-[#0f212e] border-[#2f4553]'}`}>
+                      <div key={hist.id} className="border p-2.5 rounded-md flex flex-col gap-1 transition-colors bg-[#0f212e] border-[#2f4553]">
                         <div className="flex justify-between items-start">
                           <div className="flex flex-col">
                             <span className="text-[10px] text-[#b1bad3] mb-0.5 flex items-center gap-1">
                               {hist.date}
                               {hist.type === 'thief' ? <Footprints className="w-3 h-3 text-orange-500" /> : <Trophy className="w-3 h-3 text-yellow-500" />}
                             </span>
-                            <div className={`font-bold truncate text-sm ${hist.paid ? 'text-gray-400 line-through' : (hist.type === 'thief' ? 'text-orange-400' : 'text-yellow-400')}`}>
+                            <div className={`font-bold truncate text-sm ${hist.type === 'thief' ? 'text-orange-400' : 'text-yellow-400'}`}>
                               {hist.winner} {hist.type === 'thief' && <span className="text-[10px] uppercase text-orange-500/70 ml-1">(Voleur)</span>}
                             </div>
-                            <div className={`text-xs font-black mt-1 ${hist.paid ? 'text-green-600/70' : 'text-[#00e701]'}`}>- {formatKamas(hist.prize)} K</div>
+                            <div className={`text-xs font-black mt-1 ${hist.type === 'thief' ? 'text-orange-500' : 'text-yellow-500'}`}>
+                              - {formatKamas(hist.prize)} K
+                            </div>
                           </div>
-                          <button onClick={() => toggleGainPaid(hist.id)} className={`p-1.5 rounded-full transition-all ${hist.paid ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-[#2f4553] text-[#b1bad3] hover:text-white hover:bg-[#3d5668]'}`} title="Cocher si vous avez payé">
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
                         </div>
                       </div>
                     ))
@@ -890,6 +848,49 @@ const App = () => {
                     <span className="truncate">{target}</span> <Crosshair className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* OVERLAY: PACT CHOOSER */}
+          {pactChooser && (
+            <div className="absolute inset-0 bg-[#0a151d]/95 z-50 flex flex-col items-center justify-center p-6 animate-fade-in backdrop-blur-md">
+              <Droplets className="w-20 h-20 text-rose-500 mb-4 animate-pulse drop-shadow-[0_0_15px_rgba(225,29,72,0.8)]" />
+              <h2 className="text-4xl font-black text-rose-500 text-center uppercase tracking-widest mb-2 drop-shadow-md">Pacte de Sang</h2>
+              <p className="text-rose-200 text-lg text-center mb-8 bg-rose-900/30 px-6 py-2 rounded-full border border-rose-500/50">
+                <strong className="text-white">{pactChooser}</strong>, liez 2 joueurs par le sang :
+              </p>
+              <div className="flex flex-wrap justify-center gap-3 max-w-2xl max-h-[40vh] overflow-y-auto p-2">
+                {alivePlayers.map(target => (
+                  <button 
+                    key={target} 
+                    onClick={() => {
+                      setPactSelection(prev => 
+                        prev.includes(target) ? prev.filter(p => p !== target) : 
+                        prev.length < 2 ? [...prev, target] : prev
+                      );
+                    }}
+                    className={`px-6 py-3 rounded-full text-base font-bold border transition-all hover:scale-105 shadow-md flex items-center justify-center min-w-[120px] ${pactSelection.includes(target) ? 'bg-rose-600 text-white border-rose-400 shadow-[0_0_15px_rgba(225,29,72,0.8)]' : 'bg-[#213743] hover:bg-[#2f4553] border-[#2f4553] hover:border-gray-400 text-[#b1bad3] hover:text-white'}`}
+                  >
+                    {target}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-8 h-16 flex items-center">
+                {pactSelection.length === 2 && (
+                  <button 
+                    onClick={() => {
+                       setBloodPact(pactSelection);
+                       setLastEvent({ type: 'pact', message: `🩸 ${pactChooser} a lié ${pactSelection[0]} et ${pactSelection[1]} par le Sang !` });
+                       triggerScreenEffect('blood'); playSound('divine', soundEnabled);
+                       setPactChooser(null);
+                       checkWinCondition(alivePlayers, kamaPrize);
+                    }}
+                    className="px-12 py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-black text-xl uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(225,29,72,0.6)] animate-fade-in-up"
+                  >
+                    Sceller le Pacte
+                  </button>
+                )}
               </div>
             </div>
           )}
