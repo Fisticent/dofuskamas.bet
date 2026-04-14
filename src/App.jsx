@@ -595,9 +595,16 @@ const App = () => {
         <div className="flex items-center gap-2 text-2xl font-black tracking-tighter">
           <Dices className="text-[#00e701] w-8 h-8" />
           <span>KAMAS<span className="text-[#b1bad3]">.BET</span></span>
-          <button onClick={resetGlobal} className="ml-4 text-[10px] bg-red-600/20 text-red-500 border border-red-500/50 hover:bg-red-500 hover:text-white px-2 py-1 rounded-md transition-colors flex items-center gap-1 uppercase font-bold" title="Tout réinitialiser">
-             <RefreshCw className="w-3 h-3" /> NOUVELLE PARTIE
-          </button>
+          <div className="flex items-center gap-2 ml-4">
+            <button onClick={resetGlobal} className="text-[10px] bg-red-600/20 text-red-500 border border-red-500/50 hover:bg-red-500 hover:text-white px-2 py-1 rounded-md transition-colors flex items-center gap-1 uppercase font-bold" title="Tout réinitialiser">
+               <RefreshCw className="w-3 h-3" /> NOUVELLE PARTIE
+            </button>
+            {(alivePlayers.length !== participants.length || winner) && (
+              <button onClick={() => initGame(participants)} className="text-[10px] bg-blue-600/20 text-blue-400 border border-blue-500/50 hover:bg-blue-500 hover:text-white px-2 py-1 rounded-md transition-colors flex items-center gap-1 uppercase font-bold" title="Relancer la roulette du Chaos avec les mêmes options">
+                 <Play className="w-3 h-3" /> RELANCER LE COMBAT
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <button onClick={() => setSoundEnabled(!soundEnabled)} className="text-[#b1bad3] hover:text-white transition-colors p-2">
@@ -723,11 +730,6 @@ const App = () => {
                 </div>
               </div>
 
-              {(alivePlayers.length !== participants.length || winner) && (
-                 <button onClick={() => initGame(participants)} className="w-full py-3 bg-[#2f4553] hover:bg-[#3d5668] text-white rounded-md font-bold text-sm uppercase flex items-center justify-center gap-2 transition-colors">
-                  <RefreshCw className="w-4 h-4" /> Relancer la partie
-                </button>
-              )}
             </div>
           ) : (
             <div className="flex-1 flex flex-col gap-3 animate-fade-in pr-2 overflow-hidden h-full">
