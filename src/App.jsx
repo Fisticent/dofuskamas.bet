@@ -126,14 +126,14 @@ const App = () => {
     let type = 'player';
     for (let e of possibleEvents) { if (r < e.weight) { type = e.type; break; } r -= e.weight; }
 
-    if (type === EVENT_TYPES.JACKPOT) return { type: EVENT_TYPES.JACKPOT, text: '💰 JACKPOT' };
-    if (type === EVENT_TYPES.SHIELD) return { type: EVENT_TYPES.SHIELD, text: '🛡️ BOUCLIER' };
-    if (type === EVENT_TYPES.RESURRECT) return { type: EVENT_TYPES.RESURRECT, text: '🧟 RÉSURRECTION' };
-    if (type === EVENT_TYPES.CARNAGE) return { type: EVENT_TYPES.CARNAGE, text: '☠️ CARNAGE' };
-    if (type === EVENT_TYPES.ASSASSIN) return { type: EVENT_TYPES.ASSASSIN, text: '🗡️ ASSASSIN' };
-    if (type === EVENT_TYPES.THIEF) return { type: EVENT_TYPES.THIEF, text: '🏃‍♂️ VOLEUR' };
-    if (type === EVENT_TYPES.DUEL) return { type: EVENT_TYPES.DUEL, text: '⚔️ DUEL 1v1' };
-    if (type === EVENT_TYPES.POTATO) return { type: EVENT_TYPES.POTATO, text: '💣 PATATE CHAUDE' };
+    if (type === EVENT_TYPES.JACKPOT) return { type: EVENT_TYPES.JACKPOT, text: '💰 JACKPOT D\'ENUTROF' };
+    if (type === EVENT_TYPES.SHIELD) return { type: EVENT_TYPES.SHIELD, text: '🛡️ BOUCLIER FECA' };
+    if (type === EVENT_TYPES.RESURRECT) return { type: EVENT_TYPES.RESURRECT, text: '🧟 LAISSE SPIRITUELLE' };
+    if (type === EVENT_TYPES.CARNAGE) return { type: EVENT_TYPES.CARNAGE, text: '☠️ COLÈRE DE IOP' };
+    if (type === EVENT_TYPES.ASSASSIN) return { type: EVENT_TYPES.ASSASSIN, text: '🗡️ ATTAQUE MORTELLE' };
+    if (type === EVENT_TYPES.THIEF) return { type: EVENT_TYPES.THIEF, text: '🏃‍♂️ ARNAQUE' };
+    if (type === EVENT_TYPES.DUEL) return { type: EVENT_TYPES.DUEL, text: '⚔️ DUEL DE IOP' };
+    if (type === EVENT_TYPES.POTATO) return { type: EVENT_TYPES.POTATO, text: '💣 BOMBE AMBULANTE' };
     if (type === EVENT_TYPES.PACT) return { type: EVENT_TYPES.PACT, text: '🩸 PACTE DE SANG' };
     
     return { type: 'player', text: aliveList[Math.floor(Math.random() * aliveList.length)] };
@@ -161,7 +161,7 @@ const App = () => {
     toProcess.forEach(p => {
       if (currentShields.includes(p)) {
         currentShields = currentShields.filter(s => s !== p);
-        logs.push(`🛡️ Le bouclier a sauvé ${p} !`);
+        logs.push(`🛡️ Le Bouclier Feca a sauvé ${p} !`);
         playSound('divine', soundEnabled);
       } else {
         currentAlive = currentAlive.filter(a => a !== p);
@@ -222,14 +222,14 @@ const App = () => {
 
     let targetWheelItem = {};
     if (chosenEvent === EVENT_TYPES.POTATO_EXPLODE) targetWheelItem = { type: EVENT_TYPES.POTATO_EXPLODE, text: `💣 ${eventData.victim}` };
-    else if (chosenEvent === EVENT_TYPES.JACKPOT) targetWheelItem = { type: EVENT_TYPES.JACKPOT, text: '💰 JACKPOT' };
-    else if (chosenEvent === EVENT_TYPES.SHIELD) { eventData.lucky = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.SHIELD, text: '🛡️ BOUCLIER' }; } 
-    else if (chosenEvent === EVENT_TYPES.RESURRECT) { eventData.revived = eliminatedPlayers[Math.floor(Math.random() * eliminatedPlayers.length)]; targetWheelItem = { type: EVENT_TYPES.RESURRECT, text: '🧟 RÉSURRECTION' }; } 
-    else if (chosenEvent === EVENT_TYPES.CARNAGE) { const shuffled = [...alivePlayers].sort(() => 0.5 - Math.random()); eventData.victims = [shuffled[0], shuffled[1]]; targetWheelItem = { type: EVENT_TYPES.CARNAGE, text: '☠️ CARNAGE' }; } 
-    else if (chosenEvent === EVENT_TYPES.ASSASSIN) { eventData.assassin = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.ASSASSIN, text: '🗡️ ASSASSIN' }; } 
-    else if (chosenEvent === EVENT_TYPES.THIEF) { eventData.thief = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.THIEF, text: '🏃‍♂️ VOLEUR' }; } 
-    else if (chosenEvent === EVENT_TYPES.DUEL) { const shuffled = [...alivePlayers].sort(() => 0.5 - Math.random()); eventData.p1 = shuffled[0]; eventData.p2 = shuffled[1]; targetWheelItem = { type: EVENT_TYPES.DUEL, text: '⚔️ DUEL 1v1' }; }
-    else if (chosenEvent === EVENT_TYPES.POTATO) { eventData.target = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.POTATO, text: '💣 PATATE CHAUDE' }; }
+    else if (chosenEvent === EVENT_TYPES.JACKPOT) targetWheelItem = { type: EVENT_TYPES.JACKPOT, text: '💰 JACKPOT D\'ENUTROF' };
+    else if (chosenEvent === EVENT_TYPES.SHIELD) { eventData.lucky = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.SHIELD, text: '🛡️ BOUCLIER FECA' }; } 
+    else if (chosenEvent === EVENT_TYPES.RESURRECT) { eventData.revived = eliminatedPlayers[Math.floor(Math.random() * eliminatedPlayers.length)]; targetWheelItem = { type: EVENT_TYPES.RESURRECT, text: '🧟 LAISSE SPIRITUELLE' }; } 
+    else if (chosenEvent === EVENT_TYPES.CARNAGE) { const shuffled = [...alivePlayers].sort(() => 0.5 - Math.random()); eventData.victims = [shuffled[0], shuffled[1]]; targetWheelItem = { type: EVENT_TYPES.CARNAGE, text: '☠️ COLÈRE DE IOP' }; } 
+    else if (chosenEvent === EVENT_TYPES.ASSASSIN) { eventData.assassin = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.ASSASSIN, text: '🗡️ ATTAQUE MORTELLE' }; } 
+    else if (chosenEvent === EVENT_TYPES.THIEF) { eventData.thief = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.THIEF, text: '🏃‍♂️ ARNAQUE' }; } 
+    else if (chosenEvent === EVENT_TYPES.DUEL) { const shuffled = [...alivePlayers].sort(() => 0.5 - Math.random()); eventData.p1 = shuffled[0]; eventData.p2 = shuffled[1]; targetWheelItem = { type: EVENT_TYPES.DUEL, text: '⚔️ DUEL DE IOP' }; }
+    else if (chosenEvent === EVENT_TYPES.POTATO) { eventData.target = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: EVENT_TYPES.POTATO, text: '💣 BOMBE AMBULANTE' }; }
     else if (chosenEvent === EVENT_TYPES.PACT) { const shuffled = [...alivePlayers].sort(() => 0.5 - Math.random()); eventData.p1 = shuffled[0]; eventData.p2 = shuffled[1]; targetWheelItem = { type: EVENT_TYPES.PACT, text: '🩸 PACTE DE SANG' }; }
     else { chosenEvent = EVENT_TYPES.ELIMINATION; eventData.victim = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]; targetWheelItem = { type: 'player', text: eventData.victim }; }
 
@@ -254,7 +254,7 @@ const App = () => {
         if (chosenEvent === EVENT_TYPES.POTATO_EXPLODE) {
           pData = processDeath(eventData.victim, pData.newAlive, pData.newEliminated, pData.newShields);
           setPotatoHolder(null);
-          setLastEvent({ type: 'carnage', message: `💣 LA PATATE A EXPLOSÉ SUR ${eventData.victim} ! ${pData.logs.join(' ')}` });
+          setLastEvent({ type: 'carnage', message: `💣 LA BOMBE AMBULANTE A EXPLOSÉ SUR ${eventData.victim} ! ${pData.logs.join(' ')}` });
           triggerScreenEffect('explosion'); playSound('explosion', soundEnabled);
         }
         else if (chosenEvent === EVENT_TYPES.ELIMINATION) {
@@ -264,15 +264,15 @@ const App = () => {
         } 
         else if (chosenEvent === EVENT_TYPES.JACKPOT) {
           const boost = Math.floor(currentKamas * 0.20); currentKamas += boost; setKamaPrize(currentKamas);
-          setLastEvent({ type: 'bonus', message: `💰 JACKPOT ! +${formatKamas(boost)} Kamas !` }); playSound('coin', soundEnabled);
+          setLastEvent({ type: 'bonus', message: `💰 JACKPOT D'ENUTROF ! +${formatKamas(boost)} Kamas !` }); playSound('coin', soundEnabled);
         }
         else if (chosenEvent === EVENT_TYPES.SHIELD) {
           if (!pData.newShields.includes(eventData.lucky)) pData.newShields.push(eventData.lucky);
-          setLastEvent({ type: 'bonus', message: `🛡️ ${eventData.lucky} obtient un bouclier divin !` }); playSound('divine', soundEnabled);
+          setLastEvent({ type: 'bonus', message: `🛡️ ${eventData.lucky} obtient un Bouclier Feca !` }); playSound('divine', soundEnabled);
         }
         else if (chosenEvent === EVENT_TYPES.RESURRECT) {
           pData.newEliminated = pData.newEliminated.filter(p => p !== eventData.revived); pData.newAlive.push(eventData.revived);
-          setLastEvent({ type: 'resurrect', message: `🧟 MIRACLE ! ${eventData.revived} revient à la vie !` }); playSound('divine', soundEnabled);
+          setLastEvent({ type: 'resurrect', message: `🧟 LAISSE SPIRITUELLE ! ${eventData.revived} revient à la vie !` }); playSound('divine', soundEnabled);
         }
         else if (chosenEvent === EVENT_TYPES.CARNAGE) {
           eventData.victims.forEach(v => {
@@ -280,19 +280,19 @@ const App = () => {
             pData.newAlive = res.newAlive; pData.newEliminated = res.newEliminated; pData.newShields = res.newShields;
             pData.actuallyDied.push(...res.actuallyDied); pData.logs.push(...res.logs);
           });
-          setLastEvent({ type: 'carnage', message: `☠️ CARNAGE SUR ${eventData.victims.join(' & ')} ! ${pData.logs.join(' ')}` });
+          setLastEvent({ type: 'carnage', message: `☠️ COLÈRE DE IOP SUR ${eventData.victims.join(' & ')} ! ${pData.logs.join(' ')}` });
           triggerScreenEffect('fire'); playSound('explosion', soundEnabled);
         }
         else if (chosenEvent === EVENT_TYPES.THIEF) {
           const stolen = Math.floor(currentKamas * 0.33); currentKamas -= stolen; setKamaPrize(currentKamas);
           pData.newAlive = pData.newAlive.filter(p => p !== eventData.thief);
           pData.newEliminated = [eventData.thief, ...pData.newEliminated];
-          setLastEvent({ type: 'thief', message: `🏃‍♂️ ${eventData.thief} s'enfuit avec ${formatKamas(stolen)} K !` }); playSound('coin', soundEnabled);
+          setLastEvent({ type: 'thief', message: `🏃‍♂️ ${eventData.thief} (Arnaque) s'enfuit avec ${formatKamas(stolen)} K !` }); playSound('coin', soundEnabled);
           setSessionHistory(prev => [{ id: Date.now(), winner: eventData.thief, prize: stolen, date: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), paid: false, type: 'thief' }, ...prev]);
         }
         else if (chosenEvent === EVENT_TYPES.POTATO) {
           setPotatoHolder(eventData.target);
-          setLastEvent({ type: 'potato', message: `💣 ${eventData.target} REÇOIT LA PATATE CHAUDE !` }); playSound('divine', soundEnabled);
+          setLastEvent({ type: 'potato', message: `💣 ${eventData.target} REÇOIT LA BOMBE AMBULANTE !` }); playSound('divine', soundEnabled);
         }
         else if (chosenEvent === EVENT_TYPES.PACT) {
           setBloodPact([eventData.p1, eventData.p2]);
@@ -303,10 +303,10 @@ const App = () => {
         setIsSpinning(false);
 
         if (chosenEvent === EVENT_TYPES.ASSASSIN) {
-          setLastEvent({ type: 'assassin', message: `🗡️ ${eventData.assassin} EST UN ASSASSIN !` }); playSound('divine', soundEnabled);
+          setLastEvent({ type: 'assassin', message: `🗡️ ${eventData.assassin} PRÉPARE UNE ATTAQUE MORTELLE !` }); playSound('divine', soundEnabled);
           setAssassinTargeting(eventData.assassin);
         } else if (chosenEvent === EVENT_TYPES.DUEL) {
-          setLastEvent({ type: 'duel', message: `⚔️ DUEL ENTRE ${eventData.p1} ET ${eventData.p2} !` }); playSound('slash', soundEnabled);
+          setLastEvent({ type: 'duel', message: `⚔️ DUEL DE IOP ENTRE ${eventData.p1} ET ${eventData.p2} !` }); playSound('slash', soundEnabled);
           setDuelState({ p1: eventData.p1, p2: eventData.p2, p1Hp: 100, p2Hp: 100, resolving: false, phase: 'idle', countdownText: '' });
         } else {
           checkWinCondition(pData.newAlive, currentKamas);
@@ -547,14 +547,14 @@ const App = () => {
                 <span className="text-[#b1bad3] text-sm font-semibold flex items-center gap-1 mb-1"><Zap className="w-4 h-4"/> Événements Actifs & Poids</span>
                 <div className="grid grid-cols-1 gap-y-3">
                   {[
-                    { key: 'jackpot', icon: <Coins className="w-3 h-3"/>, label: 'Jackpot', color: 'text-yellow-500' },
-                    { key: 'shield', icon: <Shield className="w-3 h-3"/>, label: 'Bouclier', color: 'text-blue-400' },
-                    { key: 'resurrect', icon: <ArrowUpCircle className="w-3 h-3"/>, label: 'Résurrection', color: 'text-emerald-400' },
-                    { key: 'carnage', icon: <Skull className="w-3 h-3"/>, label: 'Carnage', color: 'text-red-500' },
-                    { key: 'assassin', icon: <Sword className="w-3 h-3"/>, label: 'Assassin', color: 'text-purple-400' },
-                    { key: 'thief', icon: <Footprints className="w-3 h-3"/>, label: 'Voleur', color: 'text-orange-400' },
-                    { key: 'duel', icon: <Swords className="w-3 h-3"/>, label: 'Duel 1v1', color: 'text-gray-300' },
-                    { key: 'potato', icon: <Bomb className="w-3 h-3"/>, label: 'Patate Chaude', color: 'text-red-400' },
+                    { key: 'jackpot', icon: <Coins className="w-3 h-3"/>, label: 'Jackpot d\'Enutrof', color: 'text-yellow-500' },
+                    { key: 'shield', icon: <Shield className="w-3 h-3"/>, label: 'Bouclier Feca', color: 'text-blue-400' },
+                    { key: 'resurrect', icon: <ArrowUpCircle className="w-3 h-3"/>, label: 'Laisse Spirituelle', color: 'text-emerald-400' },
+                    { key: 'carnage', icon: <Skull className="w-3 h-3"/>, label: 'Colère de Iop', color: 'text-red-500' },
+                    { key: 'assassin', icon: <Sword className="w-3 h-3"/>, label: 'Attaque Mortelle', color: 'text-purple-400' },
+                    { key: 'thief', icon: <Footprints className="w-3 h-3"/>, label: 'Arnaque', color: 'text-orange-400' },
+                    { key: 'duel', icon: <Swords className="w-3 h-3"/>, label: 'Duel de Iop', color: 'text-gray-300' },
+                    { key: 'potato', icon: <Bomb className="w-3 h-3"/>, label: 'Bombe Ambulante', color: 'text-red-400' },
                     { key: 'pact', icon: <Droplets className="w-3 h-3"/>, label: 'Pacte Sang', color: 'text-rose-400' }
                   ].map(ev => (
                     <div key={ev.key} className="flex items-center justify-between group relative">
@@ -693,7 +693,7 @@ const App = () => {
           {assassinTargeting && (
             <div className="absolute inset-0 bg-[#0a151d]/95 z-40 flex flex-col items-center justify-center p-6 animate-fade-in backdrop-blur-sm">
               <Sword className="w-16 h-16 text-purple-500 mb-4 animate-bounce" />
-              <h2 className="text-3xl font-black text-white text-center uppercase tracking-wide mb-2">L'Assassin Frappe</h2>
+              <h2 className="text-3xl font-black text-white text-center uppercase tracking-wide mb-2">Attaque Mortelle</h2>
               <p className="text-purple-300 text-lg text-center mb-8 bg-purple-900/30 px-6 py-2 rounded-full border border-purple-500/50">
                 <strong className="text-white">{assassinTargeting}</strong>, choisissez votre victime :
               </p>
