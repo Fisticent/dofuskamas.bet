@@ -1,4 +1,4 @@
-import { Coins, Users, Play, Settings, Dices, Trophy, AlignLeft, Skull, Crosshair, RefreshCw, Shield, Zap, ArrowUpCircle, Sword, Footprints, Volume2, VolumeX, History, Bomb, Droplets, Swords, Percent, Info, User, Wallet, CheckCircle, PlusCircle, CreditCard, ArrowDownRight, ArrowUpRight, Download, Activity, SkullCore } from 'lucide-react';
+import { Coins, Users, Play, Settings, Dices, Trophy, AlignLeft, Skull, Crosshair, RefreshCw, Shield, Zap, ArrowUpCircle, Sword, Footprints, Volume2, VolumeX, History, Bomb, Droplets, Swords, Percent, Info, User, Wallet, CheckCircle, PlusCircle, CreditCard, ArrowDownRight, ArrowUpRight, Download, Activity } from 'lucide-react';
 import * as htmlToImage from 'html-to-image';
 import { EVENT_TYPES, EVENT_DESCRIPTIONS } from './constants';
 import { playSound, initAudio, setAmbientDrone } from './audio';
